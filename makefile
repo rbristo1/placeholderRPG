@@ -2,9 +2,8 @@ all:	main
 
 main: compiled/main.o compiled/enemies.o compiled/screenManip.o compiled/battle.o compiled/mapMovements.o
 	g++ -msse2 -mavx2 -lm -ldl -lpthread -lncurses -lmenu compiled/main.o compiled/enemies.o compiled/screenManip.o compiled/battle.o compiled/mapMovements.o -o main
+	rm compiled/temp.txt
 
-compiled/: compiled/
-	mkdir compiled
 compiled/main.o: implementation/main.cpp
 	g++ -c implementation/main.cpp
 	mv main.o compiled
