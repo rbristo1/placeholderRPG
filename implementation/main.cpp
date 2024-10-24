@@ -1,9 +1,9 @@
 
 
-#include "implementation/enemies.h"
-#include "implementation/screenManip.h"
-#include "implementation/battle.h"
-#include "implementation/mapMovements.h"
+#include "enemies.h"
+#include "screenManip.h"
+#include "battle.h"
+#include "mapMovements.h"
 #include <stdio.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
