@@ -5,7 +5,6 @@
 
 using namespace std;
 
-
 const vector<vector<string> > battle::battleInterfaceStates = 
 {
     {
@@ -45,34 +44,48 @@ const vector<vector<string> > battle::battleInterfaceStates =
     }
 };
 
+//loads the battle interface into the screen vector
 void battle::loadBattleInterface(vector<string> * screen, int battleInterfaceState, int enemyNumber) {
     screenManip sm;
     enemyVector ev;
+    //finds the size of the enemy art
     int size = ev.enemies[enemyNumber].size();
+
+    //maximum size for an enemy on the screen
     if (size > 35) {
         size = 35;
     }
-    //clearScreen(screen);
+
+    //sets the enemy window to the proper enemy art
     for (int i = 2; i<size+2; i++) {
         screen->at(i) = "                        " + ev.enemies[enemyNumber][i-2] + "                        "; //"                        "
     }
+    //top border for text window
     screen -> at(36) = "────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────";
-    
+
+    //bottom border for text window
     screen -> at(40) = "────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────";
+
+    //loads player options at the bottom of the screen
     for (int i = 0; i<battleInterfaceStates[0].size(); i++) {
         screen->at(42+i) = battleInterfaceStates[battleInterfaceState][i];
     }
+
+    //prints
     sm.printScreen(screen);
     return;
 }
 
-int battle::battleStart(vector<string> * screen, int enemyNumber) {
+int battle::battleStart(int enemyNumber) {
+    vector<string> screen2;
+    screen2.resize(50);
+    
     screenManip sm;
     battle bt;
-    sm.clearScreen(screen);
-    bt.loadBattleInterface(screen, 0, 1);
-    bt.printBattleText(screen, "This is a test message to test the battle output text system.");
-    sm.printScreen(screen);
+    sm.clearScreen(&screen2);
+    bt.loadBattleInterface(&screen2, 0, 1);
+    bt.printBattleText(&screen2, "This is a test message to test the battle output text system.");
+    sm.printScreen(&screen2);
     int lastInput = 0;
     
     do{
@@ -82,12 +95,12 @@ int battle::battleStart(vector<string> * screen, int enemyNumber) {
 
         if (input == 'd' && lastInput != 3) {
             lastInput++;
-            bt.loadBattleInterface(screen, lastInput, 1);
+            bt.loadBattleInterface(&screen2, lastInput, 1);
             //printScreen(&screen);
         }
         else if (input == 'a' && lastInput != 0) {
             lastInput--;
-            bt.loadBattleInterface(screen, lastInput, 1);
+            bt.loadBattleInterface(&screen2, lastInput, 1);
             
         }
         //0 = attack state, 1 = defend state, 2 = item state, 3 = flee state
