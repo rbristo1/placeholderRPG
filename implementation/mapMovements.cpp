@@ -79,7 +79,6 @@ void mapMovements::gameStart(vector<string> * screen) {
         double microsecond = 1000000;
         usleep(0.03125 * microsecond);//sleeps for 3 second
         char input = getchar();
-        cout << "x: " << playerx;
 
         if (input == 'd' && playerx != 143) {
             string tempString = screen->at(playery);

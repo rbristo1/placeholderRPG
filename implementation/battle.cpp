@@ -43,6 +43,12 @@ const vector<vector<string> > battle::battleInterfaceStates =
         "    └─────────────────────────────┘    └─────────────────────────────┘    └─────────────────────────────┘    \x1B[31m└─────────────────────────────┘\033[0m    "
     }
 };
+vector<string> battleSubMenuInterface {
+    "            > option1                             option2                             option3                             option4               ",
+    "              option1                           > option2                             option3                             option4               ",
+    "              option1                             option2                           > option3                             option4               ",
+    "              option1                             option2                             option3                           > option4               "
+};
 
 //loads the battle interface into the screen vector
 void battle::loadBattleInterface(vector<string> * screen, int battleInterfaceState, int enemyNumber) {
@@ -84,40 +90,86 @@ int battle::battleStart(int enemyNumber) {
     battle bt;
     sm.clearScreen(&screen2);
     bt.loadBattleInterface(&screen2, 0, 1);
-    bt.printBattleText(&screen2, "This is a test message to test the battle output text system.");
+    string initInput = "This is a test message to test the battle output text system.";
+    bt.printBattleText(&screen2, initInput);
     sm.printScreen(&screen2);
     int lastInput = 0;
+    int lastInput2 = 0;
+    int submenu = 0;
     
     do{
         double microsecond = 1000000;
         usleep(0.03125 * microsecond);//sleeps for 3 second
         char input = getchar();
 
-        if (input == 'd' && lastInput != 3) {
+        if (input == 'd' && lastInput != 3 && submenu == 0) {
             lastInput++;
             bt.loadBattleInterface(&screen2, lastInput, 1);
             //printScreen(&screen);
         }
-        else if (input == 'a' && lastInput != 0) {
+        else if (input == 'a' && lastInput != 0 && submenu == 0) {
             lastInput--;
             bt.loadBattleInterface(&screen2, lastInput, 1);
             
         }
+        else if (input == 'd' && lastInput2 != 3 && submenu == 1) {
+            lastInput2++;
+            bt.printBattleText(&screen2, battleSubMenuInterface[lastInput2]);
+            sm.printScreen(&screen2);
+        }
+        else if (input == 'a' && lastInput2 != 0 && submenu == 1) {
+            lastInput2--;
+            bt.printBattleText(&screen2, battleSubMenuInterface[lastInput2]);
+            sm.printScreen(&screen2);
+        }
+        else if (input == 'q' && submenu == 1) {
+            bt.printBattleText(&screen2, initInput);
+            sm.printScreen(&screen2);
+            lastInput2 = 0;
+            submenu = 0;
+        }
         //0 = attack state, 1 = defend state, 2 = item state, 3 = flee state
-        else if (input == '\n') {
+        else if (input == '\n' && submenu == 0) {
             if (lastInput == 0) {
-                //stop = true;
-                break;
+                bt.printBattleText(&screen2, battleSubMenuInterface[0]);
+                sm.printScreen(&screen2);
+                submenu = 1;
+
+                continue;
             }
             else if (lastInput == 1) {
-                break;
+                bt.printBattleText(&screen2, battleSubMenuInterface[0]);
+                sm.printScreen(&screen2);
+                submenu = 1;
+
+                continue;
             }
             else if (lastInput == 2) {
+                bt.printBattleText(&screen2, battleSubMenuInterface[0]);
+                sm.printScreen(&screen2);
+                submenu = 1;
+
+                continue;
+            }
+            else {
+                bt.printBattleText(&screen2, battleSubMenuInterface[0]);
+                sm.printScreen(&screen2);
+                submenu = 1;
+
+                continue;
+            }
+        }
+        else if (input == '\n' && submenu == 1) {
+            if (lastInput2 == 0) {
+                break;
+            }
+            else if (lastInput2 == 1) {
+                break;
+            }
+            else if (lastInput2 == 2) {
                 break;
             }
             else {
-                //stop = true;
-                //gameStart(&screen);
                 break;
             }
         }
