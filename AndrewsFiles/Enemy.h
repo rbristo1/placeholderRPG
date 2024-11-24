@@ -3,11 +3,12 @@
 
 #include <string>
 #include "Character.h"
+#include "Action.h"
 
 class Enemy : public Character {
     public:
         Enemy(int);
-        int chooseMove();
+        Action chooseMove();
         
 };
 #endif

@@ -2,6 +2,7 @@
 #define CHARACTER_H
 
 #include <string>
+#include "Action.h"
 
 class Character {
 
@@ -18,6 +19,12 @@ class Character {
         void setStat(int, int);
         bool isDead();
         void changeStats(int, int, bool); // Stat to change, amount to change, length to change (-1 for infinite)
+        bool isDefending();
+        void defend();
+        void stopDefending();
+        Action getAction(int);
+        std::string applyStatus(int, float, bool); // status ID, status Modifier, if this character is the caster of the status
+        std::string activateStatus(bool &);
 
     protected:
         int ID;
@@ -26,7 +33,16 @@ class Character {
         int stats[6];
         int temporaryStatChanges[6];
         bool dead;
-        int actions[4];
+        Action actions[4]; // An array of all the actions one can take
+        int status;
+        int weaponDamage;
+        bool defending;
+
+    
+    private:
+        const std::string STATUSES[16] = {"Attack Raise", "Defense Raise", "Magic Attack Raise", "Magic Defense Raise", "Speed Raise",
+                                            "Attack Drop", "Defense Drop", "Magic Attack Drop", "Magic Defense Drop", "Speed Drop",
+                                            "Paralyze", "Bleed", "Burn", "Heal", "Recoil", "Slow"};
 
 
 };

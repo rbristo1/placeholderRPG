@@ -9,9 +9,9 @@ class Game {
         Game(int);
         int Battle(Player*, Enemy*);
         int damageCalc(int, int, int);
-        void attackPlayer(Enemy*, Player*, bool, int, int);
-        void attackEnemy(Player*, Enemy*, bool, int, int);
+        void attack(Character*, Character*, Action);
         void Overworld();
+        bool battleOver();
     private:
         
 };

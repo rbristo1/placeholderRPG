@@ -1,6 +1,7 @@
 #include "Enemy.h"
 #include "Player.h"
 #include "Game.h"
+#include "Action.h"
 #include <iostream>
 #include <string>
 #include <cctype>
@@ -17,49 +18,49 @@ int Game::damageCalc(int attackerATK, int targetDEF, int power) {
     return damageDealt;
 }
 
-void Game::attackPlayer(Enemy *enemy, Player *player, bool magic, int power, int effectID){
-    int enemyATK;
-    int playerDEF;
-    if (magic) {
-        enemyATK = enemy->getStat(3); // Get MGA
-        playerDEF = player->getStat(4); // Get MGD
+void Game::attack(Character *attacker, Character *target, Action attack) {
+    int attackerATK;
+    int targetDEF;
+    int damage = 0;
+    int power = attack.getPower();
+    int effectID = attack.getStatus();
+    float modifier = attack.getModifier();
+    string attackName = attack.getName();
+    if (attack.isMagic()) {
+        attackerATK = attacker->getStat(3); // Get MGA
+        targetDEF = target->getStat(4); // Get MGD
     } else {
-        enemyATK = enemy->getStat(1); // Get ATK
-        playerDEF = player->getStat(2); // Get DEF
+        attackerATK = attacker->getStat(1); // Get ATK
+        targetDEF = target->getStat(2); // Get DEF
     }
 
+    if (target->isDefending()) {
+        targetDEF *= 2;
+    }
+
+    cout << attacker->getName() << " used " << attackName << "!" << endl;
     
-    int damage = damageCalc(enemyATK, playerDEF, power);
-
-    cout << player->getName() << " takes " << damage << " damage!" << endl;
-
-    if (effectID > 0) {
-        cout << "Effect " << effectID << " was applied!";
+    if (power != 0) {
+        damage = damageCalc(attackerATK, targetDEF, power);
+        cout << target->getName() << " takes " << damage << " damage!" << endl;
     }
 
-    player->takeDamage(damage);
+    cout << target->applyStatus(effectID, modifier, false);
+    cout << attacker->applyStatus(effectID, modifier, true);
+    
+    target->takeDamage(damage);
+    
 }
 
-void Game::attackEnemy(Player *player, Enemy *enemy, bool magic, int power, int effectID){
-    int playerATK;
-    int enemyDEF;
-    if (magic) {
-        playerATK = player->getStat(3);
-        enemyDEF = enemy->getStat(4);
-    } else {
-        playerATK = player->getStat(1);
-        enemyDEF = enemy->getStat(2);
+bool Game::BattleOver(Player *player, Enemy *enemy){
+    if (player->isDead()) {
+        cout << player->getName() << " loses!" << endl;
+        return true;
+    } else if (enemy->isDead()) {
+        cout << player->getName() << " wins!" << endl;
+        return true;
     }
-
-    
-    int damage = damageCalc(playerATK, enemyDEF, power);
-    cout << enemy->getName() << " takes " << damage << " damage!" << endl;
-
-    if (effectID > 0) {
-        cout << "Effect " << effectID << " was applied!";
-    }
-
-    enemy->takeDamage(damage);
+    return false;
 }
 
 int Game::Battle(Player *player, Enemy *enemy){
@@ -67,8 +68,13 @@ int Game::Battle(Player *player, Enemy *enemy){
     bool death = false;
     int turnCount = 0;
     char currentTurn;
-    char playerAction;
+    int playerAction;
     int enemyAction;
+    bool paralyzed;
+    Action playerMove;
+    Action enemyMove;
+
+    (void) playerMove;
     
     if (player->getStat(5) >= enemy->getStat(5)){
         playerTurn = 0;
@@ -84,45 +90,70 @@ int Game::Battle(Player *player, Enemy *enemy){
         }
 
         if (currentTurn == 'p') {
-            cout << player->getName() << "'s turn! What would you like to do? (a to attack, d to defend) ";
-            cin >> playerAction;
+            cout << player->getName() << "'s turn!" << endl;
 
-            if (playerAction == 'a' || playerAction == 'A') {
-                cout << endl << player->getName() << " attacked!" << endl;
-                attackEnemy(player, enemy, false, 3, -1);
-            } else if (playerAction == 'd' || playerAction == 'D') {
-                cout << endl << player->getName() << " defended!" << endl;
-            } else if (playerAction == 'p') {
-                player->printStats();
-                cout << "hi" << endl;
+            if (player->isDefending()) {
+                player->stopDefending();
             }
+
+            cout << player->activateStatus(paralyzed);
+            death = BattleOver();
+            
+            if (paralyzed != true) {
+                cout << "What would you like to do?" << endl << "1. Attack" << endl << "2. Defend" << endl;
+                cin >> playerAction;
+
+                if (playerAction == 1) {
+
+                    cout << "What attack would you like to use?" << endl;
+                    for (int i = 0; i < 4; i++) {
+                        cout << i + 1 << ". " << player->getAction(i).getName() << endl << endl;
+                    }
+                    cin >> playerAction;
+                    attack(player, enemy, player->getAction(playerAction - 1));
+                } else if (playerAction == 2) {
+                    cout << endl << player->getName() << " defended!" << endl << endl;
+                    player->defend();
+                } else if (playerAction == 0) {
+                    player->printStats();
+                }
+            }
+
+            paralyzed = false;
         }
 
 
 
         if (currentTurn == 'e') {
-            cout << enemy->getName() << "'s turn!" << endl;
-            enemyAction = rand() % 2;
-            cout << "Enemy action: " << enemyAction << endl;
-            if(enemyAction == 0) {
-                cout << enemy->getName() << " attacked!" << endl;
-                attackPlayer(enemy, player, false, 3, -1);
-            } else if (enemyAction == 1) {
-                cout << enemy->getName() << " defended!" << endl;
+            cout << enemy->getName() << "'s turn!" << endl << endl;
+
+            if (enemy->isDefending()) {
+                enemy->stopDefending();
             }
+
+            cout << enemy->activateStatus(paralyzed);
+            death = BattleOver();
+
+            if (paralyzed != true) {
+                enemyAction = rand() % 4;
+                if(enemyAction != 0) {
+                    enemyMove = enemy->chooseMove();
+                    attack(enemy, player, enemyMove);
+                } else {
+                    cout << enemy->getName() << " defended!" << endl << endl;
+                    enemy->defend();
+                }
+            }
+
+            paralyzed = false;
+            
         }
         
+        death = BattleOver();
 
 
 
-
-        if(player->isDead()) {
-            cout << player->getName() << " loses!" << endl;
-            death = true;
-        } else if (enemy->isDead()) {
-            cout << player->getName() << " wins!" << endl;
-            death = true;
-        }
+        
         cout << endl;
         turnCount++;
     }
