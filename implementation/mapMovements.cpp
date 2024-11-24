@@ -79,7 +79,6 @@ void mapMovements::gameStart(vector<string> * screen) {
         double microsecond = 1000000;
         usleep(0.03125 * microsecond);//sleeps for 3 second
         char input = getchar();
-        cout << "x: " << playerx;
 
         if (input == 'd' && playerx != 143) {
             string tempString = screen->at(playery);
@@ -92,8 +91,11 @@ void mapMovements::gameStart(vector<string> * screen) {
             }
             else if (screen->at(playery)[playerx+1] == 's'){
                 screen -> at(playery) = tempString;
-                bt.battleStart(screen, 1);
-                return;
+                bt.battleStart(1);
+                screen->at(playery).replace(playerx, 10, " ");
+                playerx++;
+                screen->at(playery).replace(playerx, 1, "\033[31mp\033[0m");
+                sm.printScreen(screen);
             }
             else {
                 screen -> at(playery) = tempString;
@@ -104,13 +106,16 @@ void mapMovements::gameStart(vector<string> * screen) {
         else if (input == 'a' && playerx != 0) {
             if (screen->at(playery)[playerx-1] == ' ') {
                 screen->at(playery).replace(playerx, 10, " ");
-                playerx--;;
+                playerx--;
                 screen->at(playery).replace(playerx, 1, "\033[31mp\033[0m");
                 sm.printScreen(screen);
             }
             else if (screen->at(playery)[playerx-1] == 's'){
-                bt.battleStart(screen, 1);
-                return;
+                bt.battleStart(1);
+                screen->at(playery).replace(playerx, 10, " ");
+                playerx--;
+                screen->at(playery).replace(playerx, 1, "\033[31mp\033[0m");
+                sm.printScreen(screen);
             }
             
         }
@@ -122,8 +127,11 @@ void mapMovements::gameStart(vector<string> * screen) {
                 sm.printScreen(screen);
             }
             else if (screen->at(playery+1)[playerx] == 's'){
-                bt.battleStart(screen, 1);
-                return;
+                bt.battleStart(1);
+                screen->at(playery).replace(playerx, 10, " ");
+                playery++;
+                screen->at(playery).replace(playerx, 1, "\033[31mp\033[0m");
+                sm.printScreen(screen);
             }
             
         }
@@ -135,8 +143,11 @@ void mapMovements::gameStart(vector<string> * screen) {
                 sm.printScreen(screen);
             }
             else if (screen->at(playery-1)[playerx] == 's'){
-                bt.battleStart(screen, 1);
-                return;
+                bt.battleStart(1);
+                screen->at(playery).replace(playerx, 10, " ");
+                playery--;
+                screen->at(playery).replace(playerx, 1, "\033[31mp\033[0m");
+                sm.printScreen(screen);
             }
             
         }
