@@ -28,6 +28,7 @@ Enemy::Enemy(int id) : Character(id, "", nullptr){ // Used ChatGPT for help figu
         if (attackIDs[i] != -1) {
             actions[i].reconstruct(attackIDs[i]);
         }
+        
     } 
     
 }

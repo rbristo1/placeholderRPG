@@ -190,8 +190,10 @@ int battle::battleStart(int enemyNumber, Player * player) {
     sm.clearScreen(&screen2);
     bt.loadBattleInterface(&screen2, 0, enemyNumber, &enemy, player);
     bt.buildBattleInterface(player);
-    //string initInput = "This is a test message to test the battle output text system.";
-    //bt.printBattleText(&screen2, initInput);
+    string initInput = "A ";
+    initInput += enemy.getName();
+    initInput += " moves to attack!";
+    bt.printBattleText(&screen2, initInput);
     sm.printScreen(&screen2);
     for (int i =0; i< 4; i++) {
         cout << battleSubMenuInterface[i] << endl;
