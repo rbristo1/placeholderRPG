@@ -19,12 +19,10 @@ int main() {
     cout << endl;
 
     Player player("Greg", choice - 1);
-    player.print();
+    
+    player.gainItem(0);
 
-    player.learnNewMove(4);
-    player.learnNewMove(1);
-    player.learnNewMove(2);
-    player.learnNewMove(3);
 
     mainGame.Battle(&player, &slime);
+
 }

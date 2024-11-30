@@ -9,6 +9,10 @@ class Enemy : public Character {
     public:
         Enemy(int);
         Action chooseMove();
+        bool isBoss();
+        
+    private:
+        bool boss;
         
 };
 #endif

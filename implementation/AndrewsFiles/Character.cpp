@@ -1,12 +1,15 @@
 #include "Character.h"
+#include "Action.h"
 #include <iostream>
 #include <string>
 #include <cctype>
 #include <cstdlib>
+#include <ctime>
 
 using namespace std;
 
 Character::Character(int id, string characterName, const int* statArray){
+    srand(time(NULL));
 
     ID = id;
 
@@ -42,6 +45,13 @@ void Character::takeDamage(int amount) {
     hp -= amount;
     if (hp <= 0) {
         die();
+    }
+}
+
+void Character::heal(int amount) {
+    hp += amount;
+    if (hp > stats[0]) {
+        hp = stats[0];
     }
 }
 
@@ -107,53 +117,53 @@ string Character::applyStatus(int id, float modifier, bool caster) {
     // Raise Stats
     if (id == 0 && caster && temporaryStatChanges[1] <= 0) { // Raise attack
         changeStats(1, stats[1] * modifier, false);
-        return name + "'s attack was raised!\n";
+        return name + "'s attack was raised!";
     }
 
     if (id == 1 && caster && temporaryStatChanges[2] <= 0) { // Raise defense
         changeStats(2, stats[2] * modifier, false);
-        return name + "'s defense was raised!\n";
+        return name + "'s defense was raised!";
     }
 
     if (id == 2 && caster && temporaryStatChanges[3] <= 0) { // Raise magic attack
         changeStats(3, stats[3] * modifier, false);
-        return name + "'s magic attack was raised!\n";
+        return name + "'s magic attack was raised!";
     }
 
     if (id == 3 && caster && temporaryStatChanges[4] <= 0) { // Raise magic defense
         changeStats(4, stats[4] * modifier, false);
-        return name + "'s magic defense was raised!\n";
+        return name + "'s magic defense was raised!";
     }
 
     if (id == 4 && caster && temporaryStatChanges[5] <= 0) { // Raise speed
         changeStats(5, stats[5] * modifier, false);
-        return name + "'s speed was raised!\n";
+        return name + "'s speed was raised!";
     }
 
     // Lower Stats
-    if (id == 5 && !caster && temporaryStatChanges[1] <= 0) { // Lower attack
+    if (id == 5 && !caster && temporaryStatChanges[1] >= 0) { // Lower attack
         changeStats(1, stats[1] * modifier * -1, false);
-        return name + "'s attack was lowered!\n";
+        return name + "'s attack was lowered!";
     }
 
-    if (id == 6 && !caster && temporaryStatChanges[2] <= 0) { // Lower defense
+    if (id == 6 && !caster && temporaryStatChanges[2] >= 0) { // Lower defense
         changeStats(2, stats[2] * modifier * -1, false);
-        return name + "'s defense was lowered!\n";
+        return name + "'s defense was lowered!";
     }
 
-    if (id == 7 && !caster && temporaryStatChanges[3] <= 0) { // Lower magic attack
+    if (id == 7 && !caster && temporaryStatChanges[3] >= 0) { // Lower magic attack
         changeStats(3, stats[3] * modifier * -1, false);
-        return name + "'s magic attack was lowered!\n";
+        return name + "'s magic attack was lowered!";
     }
 
-    if (id == 8 && !caster && temporaryStatChanges[4] <= 0) { // Lower magic defense
+    if (id == 8 && !caster && temporaryStatChanges[4] >= 0) { // Lower magic defense
         changeStats(4, stats[4] * modifier * -1, false);
-        return name + "'s magic defense was lowered!\n";
+        return name + "'s magic defense was lowered!";
     }
 
-    if (id == 9 && !caster && temporaryStatChanges[5] <= 0) { // Lower speed
+    if (id == 9 && !caster && temporaryStatChanges[5] >= 0) { // Lower speed
         changeStats(5, stats[5] * modifier * -1, false);
-        return name + "'s speed was lowered!\n";
+        return name + "'s speed was lowered!";
     }
 
     // Apply Paralasis
@@ -161,7 +171,7 @@ string Character::applyStatus(int id, float modifier, bool caster) {
         int chance = (int) rand() % 100;
         if (chance < modifier) {
             status = 0;
-            return name + " was paralyzed!\n";
+            return name + " was paralyzed!";
         } else {
             return "";
         }
@@ -173,7 +183,7 @@ string Character::applyStatus(int id, float modifier, bool caster) {
         int chance = rand() % 100;
         if (chance < modifier) {
             status = 1;
-            return name + " was bleed!\n";
+            return name + " is bleeding!";
         } else {
             return "";
         }
@@ -184,7 +194,7 @@ string Character::applyStatus(int id, float modifier, bool caster) {
         int chance = rand() % 100;
         if (chance < modifier) {
             status = 2;
-            return name + " was burned!\n";
+            return name + " was burned!";
         } else {
             return "";
         }
@@ -192,17 +202,17 @@ string Character::applyStatus(int id, float modifier, bool caster) {
 
     // Heal
     if (id == 13 && caster) {
-        hp += hp * modifier;
+        hp += stats[0] * modifier;
         if (hp > stats[0]) {
             hp = stats[0];
         }
-        return name + " was healed!\n";
+        return name + " was healed!";
     }
 
     // Recoil
     if (id == 14 && caster) {
         takeDamage(hp * modifier);
-        return name + " took " + to_string((int) hp * modifier) + " damage in recoil!\n";
+        return name + " took " + to_string((int) hp * modifier) + " damage in recoil!";
     }
 
     // Slow
@@ -211,7 +221,7 @@ string Character::applyStatus(int id, float modifier, bool caster) {
         int chance = rand() % 100;
         if (chance < modifier) {
             status = 3;
-            return name + " was slowed!\n";
+            return name + " was slowed!";
         }
     }
 
@@ -224,7 +234,7 @@ string Character::activateStatus(bool &effect) {
         int chance = rand() % 4;
         if (chance == 1) {
             effect = true;
-            return name + " is paralyzed! " + name + " can't move!\n";
+            return name + " is paralyzed! " + name + " can't move!";
         }
     }
 
@@ -235,7 +245,7 @@ string Character::activateStatus(bool &effect) {
         if (amount == "0") {
             amount = "1";
         }
-        return name + " is bleeding! " + name + " took " + amount + " damage!\n";
+        return name + " is bleeding! " + name + " took " + amount + " damage!";
     }
 
     // Burn
@@ -246,19 +256,19 @@ string Character::activateStatus(bool &effect) {
             amount = "1";
         }
         
-        return name + " is bleeding! " + name + " took " + amount + " damage!\n";
+        return name + " is bleeding! " + name + " took " + amount + " damage!";
     }
 
     // Slow
     if (status == 3) {
         status = 4;
         effect = true;
-        return name + " is slowed! " + name + " missed their turn!\n";
+        return name + " is slowed! " + name + " missed their turn!";
     }
 
     if (status == 4) {
         status = 3;
-        return name + " is slowed!\n";
+        return name + " is slowed!";
     }
 
     return "";

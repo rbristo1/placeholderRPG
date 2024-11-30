@@ -11,6 +11,7 @@ class Character {
         void die();
         void printStats();
         void takeDamage(int);
+        void heal(int);
         int getID();
         std::string getName();
         int getHP();
@@ -37,13 +38,6 @@ class Character {
         int status;
         int weaponDamage;
         bool defending;
-
-    
-    private:
-        const std::string STATUSES[16] = {"Attack Raise", "Defense Raise", "Magic Attack Raise", "Magic Defense Raise", "Speed Raise",
-                                            "Attack Drop", "Defense Drop", "Magic Attack Drop", "Magic Defense Drop", "Speed Drop",
-                                            "Paralyze", "Bleed", "Burn", "Heal", "Recoil", "Slow"};
-
 
 };
 

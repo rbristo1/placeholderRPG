@@ -8,7 +8,7 @@ using namespace std;
 
 Weapon::Weapon() {
     ID = -1;
-    name = "";
+    name = "Invalid Item";
     damage = -1;
 }
 

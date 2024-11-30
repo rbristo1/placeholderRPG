@@ -10,8 +10,8 @@ class Game {
         int Battle(Player*, Enemy*);
         int damageCalc(int, int, int);
         void attack(Character*, Character*, Action);
-        void Overworld();
-        bool BattleOver();
+        bool BattleOver(Player*, Enemy*);
+        std::string flee(Player*, Enemy*, bool&);
     private:
         
 };
