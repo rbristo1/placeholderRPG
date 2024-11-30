@@ -5,6 +5,7 @@
 #include <iostream>
 #include <iomanip>
 
+
 using namespace std;
 
 void screenManip::clearScreen(vector<string> * screen) {

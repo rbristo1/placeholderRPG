@@ -1,0 +1,4 @@
+random encounter system
+implement combat system
+more maps
+more enemies
