@@ -29,6 +29,11 @@ Enemy::Enemy(int id) : Character(id, "", nullptr){ // Used ChatGPT for help figu
         }
         
     } 
+    for (int i = 0; i < name.length(); i++){
+        if (name[i] == '_') {
+            name[i] = ' ';
+        }
+    }
     
 }
 

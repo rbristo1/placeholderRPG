@@ -1,7 +1,7 @@
 all:	main
 
 main: main.o implementation/enemies.o implementation/screenManip.o implementation/battle.o implementation/mapMovements.o miniAudioSounds.o Character.o Enemy.o Player.o Game.o Action.o Weapon.o Item.o
-	g++ -msse2 -mavx2 -lm -ldl -lpthread -lncurses -lmenu main.o implementation/enemies.o implementation/screenManip.o implementation/battle.o implementation/mapMovements.o miniAudioSounds.o Character.o Enemy.o Player.o Game.o Action.o Weapon.o Item.o -o main
+	g++ -msse2 -mavx2 -lm -ldl -w -lpthread -lncurses -lmenu main.o implementation/enemies.o implementation/screenManip.o implementation/battle.o implementation/mapMovements.o miniAudioSounds.o Character.o Enemy.o Player.o Game.o Action.o Weapon.o Item.o -o main
 main.o: main.cpp
 	g++ -c main.cpp
 enemies.o:  implementation/enemies.cpp implementation/enemies.h
@@ -11,7 +11,7 @@ screenManip.o: implementation/screenManip.cpp implementation/screenManip.h
 battle.o: implementation/battle.cpp implementation/battle.h
 	g++ -c implementation/battle.cpp
 mapMovements.o: implementation/mapMovements.cpp implementation/mapMovements.h
-	g++ -c implementation/mapMovements.cpp
+	g++ -c -w implementation/mapMovements.cpp
 miniAudioSounds.o: miniAudioSounds.cpp miniAudioSounds.h
 	g++ -c miniAudioSounds.cpp
 Character.o: implementation/AndrewsFiles/Character.cpp implementation/AndrewsFiles/Character.h

@@ -7,6 +7,7 @@ class mapMovements {
     public:
         static vector<vector<string> > maps;
         void gameStart(vector<string> * screen);
+        vector<string> mapText(vector<string> * screen, string temp);
     private:
 
 };

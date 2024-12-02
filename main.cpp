@@ -39,7 +39,7 @@ int main() {
     mini sounds;
     bool stop = false;
     string test = "Versus.mp3";
-    thread music(&mini::playMenuTheme, &sounds, &stop, test.data());
+    //thread music(&mini::playMenuTheme, &sounds, &stop, test.data());
     vector<string> screen;
     int max = 50;
     screen.resize(max);
@@ -76,7 +76,9 @@ int main() {
     I choose 'e' to end input. Notice that EOF is also turned off
     in the non-canonical mode*/
     char lastInput = 'w';
+    thread music(&mini::playMenuTheme, &sounds, &stop, test.data());
     do{
+        sm.printScreen(&screen);
         double microsecond = 1000000;
         usleep(0.03125 * microsecond);//sleeps for 3 second
         char input = getchar();
@@ -103,7 +105,9 @@ int main() {
             else {
                 stop = true;
                 mm.gameStart(&screen);
-                break;
+                stop = false;
+                thread music2(&mini::playMenuTheme, &sounds, &stop, test.data());
+                continue;
             }
         }
         

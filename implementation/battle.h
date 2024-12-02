@@ -18,7 +18,8 @@ class battle {
         void buildBattleInterface(Player * player);
         bool BattleOver(Player *player, Enemy *enemy);
         int damageCalc(int attackerATK, int targetDEF, int power);
-        int attack(Character *attacker, Character *target, Action attack);
+        int attack(Character *attacker, Character *target, Action attack, bool * proc);
+        string flee(Player *player, Enemy *enemy, bool &fled);
     private:
 
 };

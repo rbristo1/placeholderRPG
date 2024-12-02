@@ -23,8 +23,15 @@ class Player : public Character {
         std::string getInventoryName(int);
         int getInventoryID(int);
         std::string gainItem(int);
+<<<<<<< HEAD
         void gainRandomItem();
         std::string useItem(int);
+=======
+        std::string gainRandomItem();
+        std::string useItem(int, int);
+        std::string getNextWeapon();
+        int numLearned;
+>>>>>>> 84e8ff4 (update update)
         
         Weapon weapon;
     protected:
@@ -33,11 +40,18 @@ class Player : public Character {
         int playerClass; // 0 - Barbarian   1 - Fighter    2 - Archer   3 - Mage
         std::string className;
 
+<<<<<<< HEAD
         Weapon weapon; // Equipped weapon
 
         int learnableActions[4]; // An array of the IDs of the actions available to learn - class dependent, used for skill scroll item implementations
         std::vector<int> unlearnedActions;
         int numLearned;
+=======
+        //Weapon weapon; // Equipped weapon
+
+        int learnableActions[4]; // An array of the IDs of the actions available to learn - class dependent, used for skill scroll item implementations
+        std::vector<int> unlearnedActions;
+>>>>>>> 84e8ff4 (update update)
         
 
 

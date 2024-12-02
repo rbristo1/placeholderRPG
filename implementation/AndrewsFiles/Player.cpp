@@ -206,13 +206,18 @@ string Player::gainItem(int ID) {
     }
 
     if (index == -1) {
+<<<<<<< HEAD
         return "Inventory Full!\n";
+=======
+        return "Inventory Full!";
+>>>>>>> 84e8ff4 (update update)
     }
 
     // TODO: Add system to replace item in inventory with new Item
 
     inventory[index].reconstruct(ID);
 
+<<<<<<< HEAD
     return name + " gained " + inventory[index].getName() + "!\n";
 }
 
@@ -221,6 +226,16 @@ void Player::gainRandomItem() {
 }
 
 string Player::useItem(int index) {
+=======
+    return name + " gained " + inventory[index].getName() + "!";
+}
+
+string Player::gainRandomItem() {
+    return gainItem(rand() % 12);
+}
+
+string Player::useItem(int index, int battle) {
+>>>>>>> 84e8ff4 (update update)
 
     // TODO: differentiate between using items on the map (Skill scrolls, hp scrolls, ect) vs items used in battle (ATK potions, ect), vs items used in both (Healing, scroll of seg fault)
 
@@ -239,6 +254,7 @@ string Player::useItem(int index) {
             returnText += name + " was healed for " + to_string(amount) + " HP!"; // Heal 50% of hp
         }
 
+<<<<<<< HEAD
         if (effect == 1) { // Increase Temp ATK
             returnText += applyStatus(0, 2, true);
         }
@@ -257,33 +273,85 @@ string Player::useItem(int index) {
 
         if (effect == 5) { // Increase Max HP
             returnText += name + "'s maximum HP increased!\n";
+=======
+        if (effect == 1 && battle == 0) { // Increase Temp ATK
+            returnText += applyStatus(0, 2, true);
+        }
+        if (effect == 1 && battle == 1) {
+            returnText = name + " trashed " + inventory[index].getName() + "! ";
+        }
+
+        if (effect == 2 && battle == 0) { // Increase Temp DEF
+            returnText += applyStatus(1, 2, true);
+        }
+        if (effect == 2 && battle == 1) {
+            returnText = name + " trashed " + inventory[index].getName() + "! ";
+        }
+
+        if (effect == 3 && battle == 0) { // Increase Temp MGA
+            returnText += applyStatus(3, 2, true);
+        }
+        if (effect == 3 && battle == 1) {
+            returnText = name + " trashed " + inventory[index].getName() + "! ";
+        }
+
+        if (effect == 4 && battle == 0) { // Increase Temp MGD
+            returnText += applyStatus(4, 2, true);
+        }
+        if (effect == 4 && battle == 1) {
+            returnText = name + " trashed " + inventory[index].getName() + "! ";
+        }
+
+        if (effect == 5) { // Increase Max HP
+            returnText += name + "'s maximum HP increased!";
+>>>>>>> 84e8ff4 (update update)
             changeStats(0, 5, true);
             heal(5); // Heal 1 hp exactly, to corespond with max hp increase
         }
 
         if (effect == 6) { // Increase ATK
+<<<<<<< HEAD
             returnText += name + "'s ATK increased!\n";
+=======
+            returnText += name + "'s ATK increased!";
+>>>>>>> 84e8ff4 (update update)
             changeStats(1, 1, true);
         }
 
         if (effect == 7) { // Increase DEF
+<<<<<<< HEAD
             returnText += name + "'s DEF increased!\n";
+=======
+            returnText += name + "'s DEF increased!";
+>>>>>>> 84e8ff4 (update update)
             changeStats(2, 1, true);
         }
 
         if (effect == 8) { // Increase MGA
+<<<<<<< HEAD
             returnText += name + "'s MGA increased!\n";
+=======
+            returnText += name + "'s MGA increased!";
+>>>>>>> 84e8ff4 (update update)
             changeStats(3, 1, true);
         }
 
         if (effect == 9) { // Increase MGD
+<<<<<<< HEAD
             returnText += name + "'s MGD increased!\n";
+=======
+            returnText += name + "'s MGD increased!";
+>>>>>>> 84e8ff4 (update update)
             
             changeStats(4, 1, true);
         }
 
         if (effect == 10) { // Increase SPD
+<<<<<<< HEAD
             returnText += name + "'s SPD increased!\n";
+=======
+            returnText += name + "'s SPD increased!";
+>>>>>>> 84e8ff4 (update update)
             changeStats(5, 1, true);
         }
 
@@ -304,4 +372,13 @@ string Player::useItem(int index) {
     }
 
     return "";
+<<<<<<< HEAD
+=======
+}
+
+string Player::getNextWeapon() {
+    weapon.reconstruct(weapon.getID() + 1);
+    string returnText = "You found a " + weapon.getName() + "!";
+    return returnText;
+>>>>>>> 84e8ff4 (update update)
 }

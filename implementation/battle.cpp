@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <string>
+#include "mapMovements.h"
 #include "AndrewsFiles/Character.h"
 #include "AndrewsFiles/Enemy.h"
 #include "AndrewsFiles/Player.h"
@@ -79,7 +80,8 @@ int battle::damageCalc(int attackerATK, int targetDEF, int power) {
 
 }
 
-int battle::attack(Character *attacker, Character *target, Action attack) {
+int battle::attack(Character *attacker, Character *target, Action attack, bool * proc) {
+    (*proc) = false;
     int attackerATK;
     int targetDEF;
     int damage = 0;
@@ -106,12 +108,30 @@ int battle::attack(Character *attacker, Character *target, Action attack) {
         cout << target->getName() << " takes " << damage << " damage!" << endl;
     }
     cout << "test";
-    target->applyStatus(effectID, modifier, false);
-    attacker->applyStatus(effectID, modifier, true);
+    string temp;
+    temp = target->applyStatus(effectID, modifier, false);
+    if (temp != "") {
+        (*proc) = true;
+    }
+    temp = attacker->applyStatus(effectID, modifier, true);
+    if (temp != "") {
+        (*proc) = true;
+    }
     cout << "test";
     
     target->takeDamage(damage);
     return damage;
+}
+
+string battle::flee(Player *player, Enemy *enemy, bool &fled) {
+    int fleeChance = min(100, max(0, (player->getStat(5) / enemy->getStat(5)) * 50)); // Min an Max make sure that minimum flee chance is 0%, and max flee chance is 100%
+    int chance = rand() % 100;
+    if (chance < fleeChance) {
+        fled = true;
+        return player->getName() + " fled!";
+    }
+    return player->getName() + " couldn't flee!";
+
 }
 
 //loads the battle interface into the screen vector
@@ -129,7 +149,25 @@ void battle::loadBattleInterface(vector<string> * screen, int battleInterfaceSta
 
     //sets the enemy window to the proper enemy art
     for (int i = 2; i<size+2; i++) {
-        screen->at(i) = "                        " + ev.enemies[enemyNumber][i-2] + "                        "; //"                        "
+        int offset1 = 0;
+        int offset2 = 0;
+
+        offset1 = (144 - ev.enemies[enemyNumber][i-2].size()) / 2;
+        if (ev.enemies[enemyNumber][i-2].size() % 2 != 0) {
+            offset2 = ((144 - ev.enemies[enemyNumber][i-2].size()) / 2) + 1;
+        }
+        else {
+            offset2 = ((144 - ev.enemies[enemyNumber][i-2].size()) / 2);
+        }
+        screen->at(i) = "";
+        for (int j = 0; j < offset1; j++) {
+            screen->at(i) += " ";
+        }
+        
+        screen->at(i) += ev.enemies[enemyNumber][i-2]; 
+        for (int j = 0; j < offset2; j++) {
+            screen->at(i) += " ";
+        }
     }
     //top border for text window
     screen -> at(36) = "────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────";
@@ -144,14 +182,24 @@ void battle::loadBattleInterface(vector<string> * screen, int battleInterfaceSta
     int decrease = 0;
     string HPstats = "Your HP: ";
     HPstats += to_string(player->getHP());
+    HPstats += "/";
+    HPstats += to_string(player->getStat(0));
     if (player->getHP() < 10 && player->getHP() >= 0) {
         HPstats += " ";
     }
+    if (player->getStat(0) < 10) {
+        HPstats += " ";
+    }
 
-    HPstats += "                                                                                                                         ";
+    HPstats += "                                                                                                                   ";
     HPstats += "Enemy HP: ";
     HPstats += to_string(enemy->getHP());
+    HPstats += "/";
+    HPstats += to_string(enemy->getStat(0));
     if (enemy->getHP() < 10 && enemy->getHP() >= 0) {
+        HPstats += " ";
+    }
+    if (enemy->getStat(0) < 10) {
         HPstats += " ";
     }
     screen->at(49) = HPstats;
@@ -186,6 +234,7 @@ int battle::battleStart(int enemyNumber, Player * player) {
     
     
     screenManip sm;
+    mapMovements mm;
     battle bt;
     sm.clearScreen(&screen2);
     bt.loadBattleInterface(&screen2, 0, enemyNumber, &enemy, player);
@@ -226,6 +275,7 @@ int battle::battleStart(int enemyNumber, Player * player) {
                     double microsecond = 1000000;
                     usleep(0.03125 * microsecond);//sleeps for 3 second
                     char input = getchar();
+                    //input = getchar();
     
                     
 
@@ -239,7 +289,7 @@ int battle::battleStart(int enemyNumber, Player * player) {
                         bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
                         
                     }
-                    else if (input == 'd' && lastInput2 != 3 && submenu == 1) {
+                    else if (input == 'd' && lastInput2 != 3 && submenu == 1 && lastInput2 < player->numLearned) {
                         lastInput2++;
                         bt.printBattleText(&screen2, battleSubMenuInterface[lastInput2]);
                         sm.printScreen(&screen2);
@@ -269,6 +319,11 @@ int battle::battleStart(int enemyNumber, Player * player) {
                             lastInput = 0;
                             lastInput2 = 0;
                             submenu = 0;
+                            string temp = player->getName();
+                            temp += " Defended!";
+                            bt.printBattleText(&screen2, temp);
+                            sm.printScreen(&screen2);
+                            usleep(2*microsecond);
                             /*bt.printBattleText(&screen2, battleSubMenuInterface[0]);
                             sm.printScreen(&screen2);
                             submenu = 1;*/
@@ -279,24 +334,136 @@ int battle::battleStart(int enemyNumber, Player * player) {
                             lastInput = 0;
                             lastInput2 = 0;
                             submenu = 0;
+                            vector<string> inventory = mm.maps[0];
+                            inventory[10] = "                                                  Inventory: (numbers to use item, q to exit)                                                   ";
+
+                            for (int j = 0; j<4; j++) {
+                                string temp = player->getInventoryName(j);
+                                if (temp == "Invalid Item") {
+                                    inventory[15+j] = "                                                                  " + to_string(j+1) + ". Empty                                                                      ";
+                                }
+                                else {
+                                    inventory[15+j] = " ";
+                                    for (int i = 0; i < (144-temp.size()-3)/2; i++) {
+                                        inventory[15+j] += " ";
+                                    }
+                                    inventory[15+j] += to_string(j+1);
+                                    inventory[15+j] += ". ";
+                                    inventory[15+j] += temp;
+                                    if (temp.size() % 2 == 0) {
+                                        for (int i = 0; i < (144-temp.size()-3)/2; i++) {
+                                            inventory[15+j] += " ";
+                                        }
+                                    }
+                                    else {
+                                        for (int i = 0; i < ((144-temp.size()-3)/2)+1; i++) {
+                                            inventory[15+j] += " ";
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            string temp = "HP: ";
+                            temp += to_string(player->getHP());
+                            temp += "/";
+                            temp += to_string(player->getStat(0));
+                            inventory[25] = "";
+                            for (int i = 0; i < (144-temp.size())/2; i++) {
+                                inventory[25] += " ";
+                            }
+                            inventory[25] += temp;
+                            if (temp.size() % 2 == 0) {
+                                for (int i = 0; i < (144-temp.size())/2; i++) {
+                                    inventory[25] += " ";
+                                }
+                            }
+                            else {
+                                for (int i = 0; i < ((144-temp.size())/2)+1; i++) {
+                                    inventory[25] += " ";
+                                }
+                            }
+                            sm.printScreen(&inventory);
+                            char input2;
+                            while (true) {
+                                input2 = getchar();
+                                if (input2 == 'q') {
+                                    sm.printScreen(&screen2);
+                                    break;
+                                }
+                                else if (input2 == '1') {
+                                    string temp = player->useItem(0, 0);
+                                    buildBattleInterface(player);
+                                    if (temp != "") {
+                                        printBattleText(&screen2, temp);
+                                        bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
+                                        //usleep(2*microsecond);
+                                    }
+                                    
+                                    break;
+                                }
+                                else if (input2 == '2') {
+                                    string temp = player->useItem(1, 0);
+                                    buildBattleInterface(player);
+                                    if (temp != "") {
+                                        printBattleText(&screen2, temp);
+                                        bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);;
+                                        //usleep(2*microsecond);
+                                    }
+                                    break;
+                                }
+                                else if (input2 == '3') {
+                                    string temp = player->useItem(2, 0);
+                                    buildBattleInterface(player);
+                                    if (temp != "") {
+                                        printBattleText(&screen2, temp);
+                                        bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
+                                        //usleep(2*microsecond);
+                                    }
+                                    break;
+                                }
+                                else if (input2 == '4') {
+                                    string temp = player->useItem(3, 0);
+                                    buildBattleInterface(player);
+                                    if (temp != "") {
+                                        printBattleText(&screen2, temp);
+                                        bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
+                                        //usleep(2*microsecond);
+                                    }
+                                    break;
+                                }
+                            }
+                            bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
+                            usleep(2*microsecond);
+                            if (input2 == '1' || input2 == '2' || input2 == '3' || input2 == '4') {
+                                break;
+                            }
+                            
+
+                        
                             /*bt.printBattleText(&screen2, battleSubMenuInterface[0]);
                             sm.printScreen(&screen2);
                             submenu = 1;*/
-
-                            break;
                         }
                         else {
                             lastInput = 0;
                             lastInput2 = 0;
                             submenu = 0;
+                            bool fled = false;
                             /*bt.printBattleText(&screen2, battleSubMenuInterface[0]);
                             sm.printScreen(&screen2);
                             submenu = 1;*/
-
-                            return 1;
+                            printBattleText(&screen2, flee(player, &enemy, fled));
+                            sm.printScreen(&screen2);
+                            usleep(2*microsecond);
+                            if (fled) {
+                                return 1;
+                            }
+                            break;
+                            
                         }
                     }
                     else if (input == '\n' && submenu == 1) {
+                        bool proc;
                         //attack(player, &enemy, player->getAction(lastInput2));
                         string temp = player->getName();
                         temp += " attacked with ";
@@ -304,24 +471,55 @@ int battle::battleStart(int enemyNumber, Player * player) {
                         temp += ", dealing ";
                         int HPbefore = player->getHP();
 
-                        temp += to_string(attack(player, &enemy, player->getAction(lastInput2)));
+                        temp += to_string(attack(player, &enemy, player->getAction(lastInput2), &proc));
                         int HPafter = player->getHP();
                         temp += " damage";
-                        if (player->getAction(lastInput2).getStatus() == 10) {
-                        temp += " and inflicting paralysis!";
+
+                        if (player->getAction(lastInput2).getStatus() == 0 && proc == true) {
+                            temp += " and raised their attack!";
                         }
-                        else if (player->getAction(lastInput2).getStatus() == 11) {
+                        else if (player->getAction(lastInput2).getStatus() == 1 && proc == true) {
+                            temp += " and raised their defence!";
+                        }
+                        else if (player->getAction(lastInput2).getStatus() == 2 && proc == true) {
+                            temp += " and raised their magic attack!";
+                        }
+                        else if (player->getAction(lastInput2).getStatus() == 3 && proc == true) {
+                            temp += " and raised their magic defence!";
+                        }
+                        else if (player->getAction(lastInput2).getStatus() == 4 && proc == true) {
+                            temp += " and raised their speed!";
+                        }
+                        else if (player->getAction(lastInput2).getStatus() == 5 && proc == true) {
+                            temp += " and lowered " + enemy.getName() + "'s attack!";
+                        }
+                        else if (player->getAction(lastInput2).getStatus() == 6 && proc == true) {
+                            temp += " and lowered " + enemy.getName() + "'s defence!";
+                        }
+                        else if (player->getAction(lastInput2).getStatus() == 7 && proc == true) {
+                            temp += " and lowered " + enemy.getName() + "'s magic attack!";
+                        }
+                        else if (player->getAction(lastInput2).getStatus() == 8 && proc == true) {
+                            temp += " and lowered " + enemy.getName() + "'s magic defence!";
+                        }
+                        else if (player->getAction(lastInput2).getStatus() == 9 && proc == true) {
+                            temp += " and lowered " + enemy.getName() + "'s speed!";
+                        }
+                        else if (player->getAction(lastInput2).getStatus() == 10 && proc == true) {
+                            temp += " and inflicting paralysis!";
+                        }
+                        else if (player->getAction(lastInput2).getStatus() == 11 && proc == true) {
                             temp += " and inflicting bleed!";
                         }
-                        else if (player->getAction(lastInput2).getStatus() == 12) {
+                        else if (player->getAction(lastInput2).getStatus() == 12 && proc == true) {
                             temp += " and inflicting burn!";
                         }
-                        else if (player->getAction(lastInput2).getStatus() == 14) {
+                        else if (player->getAction(lastInput2).getStatus() == 14 && proc == true) {
                             temp += " and receieved ";
                             temp += to_string(HPbefore-HPafter);
                             temp += " damage in recoil";
                         }
-                        else if (player->getAction(lastInput2).getStatus() == 15) {
+                        else if (player->getAction(lastInput2).getStatus() == 15 && proc == true) {
                             temp += " and inflicting slow!";
                         }
                         else {
@@ -329,7 +527,7 @@ int battle::battleStart(int enemyNumber, Player * player) {
                         }
                         printBattleText(&screen2, temp);
                         bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
-                        usleep(3*microsecond);
+                        usleep(2*microsecond);
                         lastInput = 0;
                         lastInput2 = 0;
                         submenu = 0;
@@ -354,23 +552,61 @@ int battle::battleStart(int enemyNumber, Player * player) {
             if (paralyzed != true) {
                 enemyAction = rand() % 4;
                 if(enemyAction != 0) {
+                    bool proc;
+                    int HPbefore = enemy.getHP();
                     enemyMove = enemy.chooseMove();
                     string temp = enemy.getName();
                     temp += " attacked with ";
                     temp += enemyMove.getName();
                     temp+= ", dealing ";
-                    temp += to_string(attack(&enemy, player, enemyMove));
+                    temp += to_string(attack(&enemy, player, enemyMove, &proc));
+                    int HPafter = enemy.getHP();
                     temp += " damage";
-                    if (enemyMove.getStatus() == 10) {
+                    if (enemyMove.getStatus() == 0 && proc == true) {
+                        temp += " and raised their attack!";
+                    }
+                    else if (enemyMove.getStatus() == 1 && proc == true) {
+                        temp += " and raised their defence!";
+                    }
+                    else if (enemyMove.getStatus() == 2 && proc == true) {
+                        temp += " and raised their magic attack!";
+                    }
+                    else if (enemyMove.getStatus() == 3 && proc == true) {
+                        temp += " and raised their magic defence!";
+                    }
+                    else if (enemyMove.getStatus() == 4 && proc == true) {
+                        temp += " and raised their speed!";
+                    }
+                    else if (enemyMove.getStatus() == 5 && proc == true) {
+                        temp += " and lowered " + enemy.getName() + "'s attack!";
+                    }
+                    else if (enemyMove.getStatus() == 6 && proc == true) {
+                        temp += " and lowered " + enemy.getName() + "'s defence!";
+                    }
+                    else if (enemyMove.getStatus() == 7 && proc == true) {
+                        temp += " and lowered " + enemy.getName() + "'s magic attack!";
+                    }
+                    else if (enemyMove.getStatus() == 8 && proc == true) {
+                        temp += " and lowered " + enemy.getName() + "'s magic defence!";
+                    }
+                    else if (enemyMove.getStatus() == 9 && proc == true) {
+                        temp += " and lowered " + enemy.getName() + "'s speed!";
+                    }
+                    else if (enemyMove.getStatus() == 10 && proc == true) {
                         temp += " and inflicting paralysis!";
                     }
-                    else if (enemyMove.getStatus() == 11) {
+                    else if (enemyMove.getStatus() == 11 && proc == true) {
                         temp += " and inflicting bleed!";
                     }
-                    else if (enemyMove.getStatus() == 12) {
+                    else if (enemyMove.getStatus() == 12 && proc == true) {
                         temp += " and inflicting burn!";
                     }
-                    else if (enemyMove.getStatus() >= 15) {
+                    else if (enemyMove.getStatus() == 14 && proc == true) {
+                        temp += " and receieved ";
+                        temp += to_string(HPbefore-HPafter);
+                        temp += " damage in recoil";
+                    }
+                    else if (enemyMove.getStatus() == 15 && proc == true) {
                         temp += " and inflicting slow!";
                     }
                     else {
@@ -405,11 +641,33 @@ int battle::battleStart(int enemyNumber, Player * player) {
         
 
     } while (!death);
-    string temp = enemy.getName();
+    string temp;
+    if (player->isDead()) {
+        temp = player->getName();
+    }
+    else {
+        temp = enemy.getName();
+    }
+    
     temp += " has been slain!";
     printBattleText(&screen2, temp);
     bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
-    usleep(3*1000000);
+    usleep(2*1000000);
+    if (!player->isDead()) {
+        temp = player->gainRandomItem();
+
+        if (temp == "Inventory Full!") {
+            temp = player->getName();
+            temp += " found an item, but their inventory was full so they had to leave it behind.";
+        }
+        else {
+            temp += "!";
+        }
+        printBattleText(&screen2, temp);
+        bt.loadBattleInterface(&screen2, lastInput, enemyNumber, &enemy, player);
+        usleep(2*1000000);
+    }
+    
 
 
 
@@ -445,55 +703,111 @@ void battle::buildBattleInterface(Player * player) {
         else {
             battleSubMenuInterface[i] += "  ";
         }
-        battleSubMenuInterface[i] += player->getAction(0).getName();
-        for (int j = 0; j < (36-player->getAction(0).getName().size())/2; j++) {
-            battleSubMenuInterface[i] += " ";
+        if (player->getAction(0).getName() != "Invalid Attack") {
+            battleSubMenuInterface[i] += player->getAction(0).getName();
+            for (int j = 0; j < (36-player->getAction(0).getName().size())/2; j++) {
+                battleSubMenuInterface[i] += " ";
 
+            }
         }
-
-        for (int j = 0; j < (34-player->getAction(1).getName().size())/2; j++) {
-            battleSubMenuInterface[i] += " ";
-
+        else {
+            for (int j = 0; j < 36/2; j++) {
+                battleSubMenuInterface[i] += " ";
+            }
         }
+        
+        
+        
+        if (player->getAction(1).getName() != "Invalid Attack") {
+            //battleSubMenuInterface[i] += player->getAction(1).getName();
+            for (int j = 0; j < (34-player->getAction(1).getName().size())/2; j++) {
+                battleSubMenuInterface[i] += " ";
+
+            }
+        }
+        else {
+            for (int j = 0; j < 34/2; j++) {
+                battleSubMenuInterface[i] += " ";
+
+            }
+        }
+        
         if (i == 1) {
             battleSubMenuInterface[i] += "> ";
         }
         else {
             battleSubMenuInterface[i] += "  ";
         }
-        battleSubMenuInterface[i] += player->getAction(1).getName();
-        for (int j = 0; j < (36-player->getAction(1).getName().size())/2; j++) {
-            battleSubMenuInterface[i] += " ";
+        if (player->getAction(1).getName() != "Invalid Attack") {
+            battleSubMenuInterface[i] += player->getAction(1).getName();
+            for (int j = 0; j < (36-player->getAction(1).getName().size())/2; j++) {
+                battleSubMenuInterface[i] += " ";
 
+            }
         }
+        else {
+            for (int j = 0; j < 36/2; j++) {
+                battleSubMenuInterface[i] += " ";
 
-        for (int j = 0; j < (34-player->getAction(2).getName().size())/2; j++) {
-            battleSubMenuInterface[i] += " ";
-
+            }
         }
+        if (player->getAction(2).getName() != "Invalid Attack") {
+            for (int j = 0; j < (34-player->getAction(2).getName().size())/2; j++) {
+                battleSubMenuInterface[i] += " ";
+
+            }
+        }
+        else {
+            for (int j = 0; j < (34)/2; j++) {
+                battleSubMenuInterface[i] += " ";
+
+            }
+        }
+        
         if (i == 2) {
             battleSubMenuInterface[i] += "> ";
         }
         else {
             battleSubMenuInterface[i] += "  ";
         }
-        battleSubMenuInterface[i] += player->getAction(2).getName();
-        for (int j = 0; j < (36-player->getAction(2).getName().size())/2; j++) {
-            battleSubMenuInterface[i] += " ";
+        if (player->getAction(2).getName() != "Invalid Attack") {
+            battleSubMenuInterface[i] += player->getAction(2).getName();
+            for (int j = 0; j < (36-player->getAction(2).getName().size())/2; j++) {
+                battleSubMenuInterface[i] += " ";
 
+            }
         }
+        else {
+            for (int j = 0; j < (36)/2; j++) {
+                battleSubMenuInterface[i] += " ";
 
-        for (int j = 0; j < (34-player->getAction(3).getName().size())/2; j++) {
-            battleSubMenuInterface[i] += " ";
-
+            }
         }
+        if (player->getAction(3).getName() != "Invalid Attack") {
+            for (int j = 0; j < (34-player->getAction(3).getName().size())/2; j++) {
+                battleSubMenuInterface[i] += " ";
+
+            }
+        }
+        else {
+            for (int j = 0; j < (34)/2; j++) {
+                battleSubMenuInterface[i] += " ";
+
+            }
+        }
+        
         if (i == 3) {
             battleSubMenuInterface[i] += "> ";
         }
         else {
             battleSubMenuInterface[i] += "  ";
         }
-        battleSubMenuInterface[i] += player->getAction(3).getName();
+        if (player->getAction(3).getName() != "Invalid Attack") {
+            battleSubMenuInterface[i] += player->getAction(3).getName();
+        }
+        else {
+
+        }
         /*for (int j = 0; j < (36-player->getAction(3).getName().size())/2; j++) {
             battleSubMenuInterface[i] += " ";
 
